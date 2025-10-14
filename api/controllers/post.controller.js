@@ -1,3 +1,4 @@
+// D:\WEBDEV\MajorProject\api\controllers\post.controller.js
 import JWT from "jsonwebtoken";
 import prisma from "../lib/prisma.js"; //model import
 import fs from "fs";
@@ -275,5 +276,23 @@ export const bulkUploadPosts = async (req, res) => {
     if (filePath && fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
+  }
+};
+
+///// for recommendations /////
+export const getPostsByIds = async (req, res) => {
+  try {
+    const ids = req.query.ids?.split(",") || [];
+    // Validate IDs: only keep those with length 24 (MongoDB ObjectId)
+    const validIds = ids.filter(id => id.length === 24);
+    if (validIds.length === 0) return res.json([]);
+
+    const posts = await prisma.post.findMany({
+      where: { id: { in: validIds } }
+    });
+    res.json(posts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch posts by IDs" });
   }
 };
